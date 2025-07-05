@@ -1,0 +1,55 @@
+# .github/workflows/main.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: . # Build context is the root of your repo where Dockerfile is
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/basicdocker-app:latest # Your Docker Hub username + custom app name
+            ${{ secrets.DOCKER_USERNAME }}/basicdocker-app:${{ github.sha }}
+  deploy-staging:
+    needs: build # This job depends on the build job succeeding
+    runs-on: ubuntu-latest
+    environment: staging # This links to a GitHub Environment you'll set up
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Add actual deployment steps here. For now, it's a placeholder.
+      # In a real scenario, this could involve SSHing into a server,
+      # using cloud provider CLIs (AWS CLI, Azure CLI, gcloud),
+      # or Kubernetes tools (kubectl).
+      - name: Simulate Staging Deployment
+        run: |
+          echo "Deploying to staging environment..."
+          echo "Current Branch: ${{ github.ref_name }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Application ${{ secrets.DOCKER_USERNAME }}/basicdocker-app:${{ github.sha }} deployed to staging."
+          # Example placeholder for actual deployment:
+          # ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa user@staging-server "docker pull ${{ secrets.DOCKER_USERNAME }}/basicdocker-app:latest && docker run -d --rm -p 80:3000 ${{ secrets.DOCKER_USERNAME }}/basicdocker-app:latest"
