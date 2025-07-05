@@ -1,0 +1,45 @@
+# docker-compose.yml (no changes needed from previous response, still the correct one)
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:3000"
+    environment:
+      DB_USER: user
+      DB_HOST: db
+      DB_NAME: mydatabase
+      DB_PASSWORD: password
+      DB_PORT: 5432
+      NODE_ENV: development
+    volumes:
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - /app/node_modules
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  db_data:
