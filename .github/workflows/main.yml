@@ -31,7 +31,7 @@ jobs:
           context: . # Build context is the root of your repo where Dockerfile is
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/basicdocker-app:latest # Your Docker Hub username + custom app name
+            ${{ secrets.DOCKER_USERNAME }}/basicdocker-app:latest 
             ${{ secrets.DOCKER_USERNAME }}/basicdocker-app:${{ github.sha }}
   deploy-staging:
     needs: build # This job depends on the build job succeeding
